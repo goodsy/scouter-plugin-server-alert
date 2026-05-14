@@ -1,0 +1,156 @@
+{
+  "_설명": {
+    "channelGroup 레벨 기준": {
+      "WARN"    : "warnValue 초과 → 주의",
+      "ERROR"   : "errorValue 초과 → 장애",
+      "FATAL"   : "fatalValue 초과 → 심각 장애"
+    },
+    "사용 가능한 채널": {
+      "telegram": "telegram",
+      "slack"   : "slack",
+      "email"   : "email"
+    },
+    "thresholds 필드 설명": {
+      "metric"        : "지표명 (PerfCounterPack key, 대소문자 무시)",
+      "enabled"       : "false = 체크 스킵",
+      "warnValue"     : "초과 시 WARN (-1 = 사용 안 함)",
+      "errorValue"    : "초과 시 ERROR (-1 = 사용 안 함)",
+      "fatalValue"    : "초과 시 FATAL (-1 = 사용 안 함)",
+      "channelGroups" : "channelGroups 키 배열 - 복수 지정 시 각 그룹 채널로 동시 발송",
+      "cooldownSec"   : "동일 objName+metric+group+level 중복 방지(초)",
+      "tpsZeroCheck"  : "이전 TPS > 0 → 현재 0 이면 WARN (TPS 전용)",
+      "tpsSpikeRatio" : "이전 TPS 대비 N배 초과 시 WARN (TPS 전용, 0=사용 안 함)"
+    }
+  },
+
+  "enabled": true,
+
+  "channelGroups": {
+
+    "ops": {
+      "_대상"   : "운영팀 - TPS/ActiveService/ErrorRate/Elapsed",
+      "WARN"    : ["email"],
+      "ERROR"   : ["email"],
+      "FATAL": ["email"]
+    },
+
+    "dev": {
+      "_대상"   : "개발팀 - ops 지표 전체 + GcTime/GcCount/HeapPct/HeapUsed",
+      "WARN"    : ["slack"],
+      "ERROR"   : ["slack"],
+      "FATAL": ["slack", "email"]
+    },
+
+    "dev-xlog": {
+      "_대상"   : "개발팀 전용 - XLog 슬로우 트랜잭션",
+      "WARN"    : ["telegram", "slack"],
+      "ERROR"   : ["telegram", "slack"],
+      "FATAL": ["telegram", "slack"]
+    },
+
+    "all": {
+      "_대상"   : "전체 - Object UP/DOWN / scouter 자체 Alert",
+      "WARN"    : ["slack", "email"],
+      "ERROR"   : ["slack", "email"],
+      "FATAL": ["slack", "email"]
+    }
+
+  },
+
+  "thresholds": [
+
+    {
+      "_comment"      : "━━ TPS ━━ ",
+      "metric"        : "TPS",
+      "enabled"       : true,
+      "warnValue"     : 10,
+      "errorValue"    : 20,
+      "fatalValue"    : 30,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 120,
+      "tpsZeroCheck"  : false,
+      "tpsSpikeRatio" : 3.0,
+      "tpsSpikeMinBase" : 10.0
+    },
+
+    {
+      "_comment"      : "━━ ActiveService ━━ ",
+      "metric"        : "ActiveService",
+      "enabled"       : false,
+      "warnValue"     : 50,
+      "errorValue"    : 80,
+      "fatalValue" : 100,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 60
+    },
+
+    {
+      "_comment"      : "━━ ErrorRate ━━ ",
+      "metric"        : "ErrorRate",
+      "enabled"       : true,
+      "warnValue"     : 1,
+      "errorValue"    : 10,
+      "fatalValue"    : 20,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 300,
+      "errorRateDiffWarn" : -1,
+      "errorRateDiffFatal" : -1
+    },
+
+    {
+      "_comment"      : "━━ Elapsed ━━ ",
+      "metric"        : "Elapsed",
+      "enabled"       : true,
+      "warnValue"     : 1000,
+      "errorValue"    : 5000,
+      "fatalValue"    : 10000,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 60
+    },
+
+    {
+      "_comment"      : "━━ GcTime ━━ ",
+      "metric"        : "GcTime",
+      "enabled"       : true,
+      "warnValue"     : 1000,
+      "errorValue"    : 3000,
+      "fatalValue"    : 5000,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 120
+    },
+
+    {
+      "_comment"      : "━━ GcCount ━━ ",
+      "metric"        : "GcCount",
+      "enabled"       : true,
+      "warnValue"     : 10,
+      "errorValue"    : 20,
+      "fatalValue"    : 25,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 120
+    },
+
+    {
+      "_comment"      : "━━ HeapPct ━━ ",
+      "metric"        : "HeapPct",
+      "enabled"       : true,
+      "warnValue"     : 75.0,
+      "errorValue"    : 85.0,
+      "fatalValue"    : 90.0,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 180
+    },
+
+    {
+      "_comment"      : "━━ HeapUsed ━━ ",
+      "metric"        : "HeapUsed",
+      "enabled"       : false,
+      "warnValue"     : 768,
+      "errorValue"    : 870,
+      "fatalValue"    : 922,
+      "channelGroups" : ["dev"],
+      "cooldownSec"   : 180
+    }
+
+  ]
+}

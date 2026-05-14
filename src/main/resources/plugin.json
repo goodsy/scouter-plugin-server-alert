@@ -1,0 +1,7 @@
+{
+  "name": "scouter-alert-plugin",
+  "description": "Scouter Server Alert Plugin — Telegram / Slack / Email",
+  "version": "1.0.0",
+  "class": "scouter.plugin.server.alert.ScouterAlertPlugin",
+  "dependencies": []
+}

@@ -1,0 +1,62 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    compileOnly 'io.github.scouter-project:scouter-common:2.21.2'
+    implementation files('libs/scouter-server-2.21.2.jar')
+
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
+}
+
+sourceSets {
+    main.kotlin.srcDirs += 'src/main/kotlin'
+    main.java.srcDirs += 'src/main/java'
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+}
+
+jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Implementation-Title': 'Scouter Alert Plugin'
+        attributes 'Implementation-Version': version
+    }
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    // plugin.json 포함
+    from('src/main/resources') {
+        include '**/*.json'
+    }
+}
+
+
+test {
+    useJUnitPlatform()
+}
