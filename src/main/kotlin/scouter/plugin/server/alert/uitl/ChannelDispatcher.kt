@@ -22,7 +22,7 @@ class ChannelDispatcher {
         ignoreMinLevel: Boolean = false
     ) {
         val levelName = AlertLevel.of(level).name
-        dispatch(objName, "all", levelName, message, subject, thresholdConfig, ignoreMinLevel)
+        //dispatch(objName, "all", levelName, message, subject, thresholdConfig, ignoreMinLevel)
     }
 
     fun dispatch(
@@ -87,8 +87,7 @@ class ChannelDispatcher {
         EmailSender(
             conf.getValue("ext_plugin_scouter_alert_email_user_id", ""),
             conf.getValue("ext_plugin_scouter_alert_email_password", ""),
-            conf.getValue("ext_plugin_scouter_alert_email_to", ""),
-            conf.getValue("ext_plugin_scouter_alert_email_from", "")
+            conf.getValue("ext_plugin_scouter_alert_email_to", "")
         ).send(subject, body)
     }
 

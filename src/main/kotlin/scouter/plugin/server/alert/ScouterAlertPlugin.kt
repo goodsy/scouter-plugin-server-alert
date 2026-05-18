@@ -1,6 +1,5 @@
 ﻿package scouter.plugin.server.alert
 
-import scouter.lang.AlertLevel as ScouterAlertLevel
 import scouter.lang.pack.AlertPack
 import scouter.lang.pack.ObjectPack
 import scouter.lang.pack.PerfCounterPack
@@ -11,14 +10,11 @@ import scouter.plugin.server.alert.common.AlertLevel
 import scouter.plugin.server.alert.monitoring.CounterMonitor
 import scouter.plugin.server.alert.monitoring.ThresholdConfigLoader
 import scouter.plugin.server.alert.uitl.AgentFilter
-import scouter.plugin.server.alert.uitl.ChannelDispatcher
-import scouter.plugin.server.alert.uitl.LogUtil
-import scouter.plugin.server.alert.uitl.MessageFormatter
+import scouter.plugin.server.alert.formatter.ChannelDispatcher
 import scouter.plugin.server.fingerpay.monitoring.XLogErrorMonitor
 import scouter.server.Configure
 import scouter.server.core.AgentManager
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.text.get
 
 /**
  * Scouter Server Built-in Plugin
@@ -49,12 +45,10 @@ class ScouterAlertPlugin {
         if (!isAllowed(objName)) return
 
         // 매칭되는 지표가 없거나 설정이 없을 경우 기본 "all" 그룹 발송
-        dispatcher.dispatch(
-            objName,
-            pack.level.toInt(),
-            MessageFormatter.formatAlert(pack),
-            MessageFormatter.formatEmailSubject(pack),
-            ThresholdConfigLoader.get()
+        dispatcher.dispatchAlert(
+            objName         = objName,
+            pack            = pack,
+            thresholdConfig = ThresholdConfigLoader.get(),
         )
     }
 
@@ -68,19 +62,25 @@ class ScouterAlertPlugin {
         val objName = AgentManager.getAgentName(pack.objHash) ?: return
         if (!isAllowed(objName)) return
 
-        val threshold = conf.getInt("ext_plugin_fingerpay_xlog_threshold_ms", 3000)
-        if (pack.elapsed <= threshold) return
+        val thresholdMs = conf.getInt("ext_plugin_fingerpay_xlog_threshold_ms", 3000)
+        if (pack.elapsed <= thresholdMs) return
 
         val event = xlogMonitor.handle(pack)
 
         if (event != null) {
-            val errorAlert = MessageFormatter.formatXlogError(event)
-            dispatcher.dispatch(
-                objName,
-                AlertLevel.ERROR.value,
-                errorAlert.body,
-                MessageFormatter.formatXlogErrorSubject(pack),
-                ThresholdConfigLoader.get(),
+            // XLog Error 이벤트: 에러 포맷
+            dispatcher.dispatchXlogError(
+                objName         = objName,
+                event           = event,
+                thresholdConfig = ThresholdConfigLoader.get(),
+            )
+        } else {
+            // Slow TX (에러 없음): slow 포맷
+            dispatcher.dispatchXlogSlow(
+                objName         = objName,
+                pack            = pack,
+                thresholdMs     = thresholdMs,
+                thresholdConfig = ThresholdConfigLoader.get(),
             )
         }
     }
@@ -99,13 +99,12 @@ class ScouterAlertPlugin {
         // 중복 알림 방지 : 같은 collector 세션에 이미 UP 일람 발송 존재하면 Skip
         if (!registeredAgents.add(pack.objHash)) return
 
-        dispatcher.dispatch(
-            pack.objName,
-            ScouterAlertLevel.INFO.toInt(),
-            MessageFormatter.formatObjectStatus(pack, "UP ✅"),
-            MessageFormatter.formatObjectSubject(pack, "UP ✅"),
-            ThresholdConfigLoader.get(),
-            true
+        dispatcher.dispatchObjectStatus(
+            pack            = pack,
+            status          = "UP ✅",
+            level           = AlertLevel.INFO,
+            thresholdConfig = ThresholdConfigLoader.get(),
+            ignoreMinLevel  = true,
         )
     }
 
@@ -120,14 +119,7 @@ class ScouterAlertPlugin {
 
         val events = monitor.check(pack, thresholdConfig)
         for (event in events) {
-            dispatcher.dispatch(
-                event.objName,
-                event.channelGroup,
-                event.level.name,
-                MessageFormatter.formatCounterAlert(event),
-                MessageFormatter.formatCounterSubject(event),
-                thresholdConfig
-            )
+            dispatcher.dispatchCounterAlert(event, thresholdConfig)
         }
     }
 
@@ -140,33 +132,34 @@ class ScouterAlertPlugin {
 
         if (!isDown && !isReconnect) return false
 
-        var objName = AgentManager.getAgentName(pack.objHash)
-        if (objName == null) objName = pack.objType
+        var objName = AgentManager.getAgentName(pack.objHash) ?: pack.objType
         if (!isAllowed(objName)) return true
 
         val objectPack = AgentManager.getAgent(pack.objHash)
-        val subject: String
-        val message: String
-        val level: Int
 
-        if (isDown) {
-            subject = objectPack?.let { MessageFormatter.formatObjectSubject(it, "DOWN 🔴") } ?: "🔴[FATAL] $objName is DOWN"
-            message = objectPack?.let { MessageFormatter.formatObjectStatus(it, "DOWN 🔴") } ?: "🔴$objName is DOWN"
-            level = ScouterAlertLevel.FATAL.toInt()
-        }else {
-            subject = objectPack?.let { MessageFormatter.formatObjectSubject(it, "RECONNECTED ✅") } ?: "✅[INFO] $objName is RECONNECTED"
-            message = objectPack?.let { MessageFormatter.formatObjectStatus(it, "RECONNECTED ✅") } ?: "✅$objName is RECONNECTED"
-            level = ScouterAlertLevel.INFO.toInt()
+        if (objectPack != null) {
+            val (status, level) =
+                if (isDown)
+                    "DOWN 🔴" to AlertLevel.FATAL
+                else
+                    "RECONNECTED ✅" to AlertLevel.INFO
+
+            dispatcher.dispatchObjectStatus(
+                pack            = objectPack,
+                status          = status,
+                level           = level,
+                thresholdConfig = ThresholdConfigLoader.get(),
+                ignoreMinLevel  = true,
+            )
+        } else {
+            // objectPack 없는 경우 Alert 팩 그대로 발송
+            dispatcher.dispatchAlert(
+                objName         = objName!!,
+                pack            = pack,
+                thresholdConfig = ThresholdConfigLoader.get(),
+                ignoreMinLevel  = true,
+            )
         }
-
-        dispatcher.dispatch(
-            objName!!,
-            level,
-            subject,
-            message,
-            ThresholdConfigLoader.get(),
-            true
-        )
 
         return true
     }
