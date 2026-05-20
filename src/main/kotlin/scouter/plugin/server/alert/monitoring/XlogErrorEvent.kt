@@ -1,4 +1,4 @@
-package scouter.plugin.server.fingerpay.monitoring
+package scouter.plugin.server.alert.monitoring
 
 import scouter.plugin.server.alert.common.AlertLevel
 

@@ -27,17 +27,6 @@ sourceSets {
     main.java.srcDirs += 'src/main/java'
 }
 
-compileKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
-
-compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "11"
-    }
-}
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE

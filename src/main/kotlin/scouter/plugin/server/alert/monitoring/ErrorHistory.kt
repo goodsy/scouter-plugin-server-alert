@@ -1,7 +1,5 @@
 package scouter.plugin.server.alert.monitoring
 
-import java.util.ArrayList
-
 /**
  * 에러율 이력 관리. 최근 10분 간의 에러율 데이터를 보관하며
  * 특정 시점 이전의 값을 탐색할 수 있다.
@@ -9,8 +7,8 @@ import java.util.ArrayList
  * Thread-safe (synchronized 메서드)
  */
 class ErrorHistory {
-    private val rates = ArrayList<Double>()
-    private val times = ArrayList<Long>()
+    private val rates = ArrayDeque<Double>()
+    private val times = ArrayDeque<Long>()
 
     constructor()
 
@@ -20,16 +18,19 @@ class ErrorHistory {
 
     @Synchronized
     fun add(rate: Double, time: Long) {
-        rates.add(rate)
-        times.add(time)
+        rates.addLast(rate)
+        times.addLast(time)
 
         // 10분 이상 된 데이터 삭제
         val cutoff = time - 600_000
-        while (times.isNotEmpty() && times[0] < cutoff) {
-            rates.removeAt(0)
-            times.removeAt(0)
+        while (times.isNotEmpty() && times.first() < cutoff) {
+            rates.removeFirst()
+            times.removeFirst()
         }
     }
+
+    @Synchronized
+    fun isEmpty(): Boolean = times.isEmpty()
 
     @Synchronized
     fun hasDataBefore(targetTime: Long): Boolean {

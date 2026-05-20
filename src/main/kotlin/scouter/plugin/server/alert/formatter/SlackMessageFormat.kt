@@ -1,11 +1,11 @@
-package scouter.plugin.server.alert.formatter
+﻿package scouter.plugin.server.alert.formatter
 
 import scouter.lang.pack.AlertPack
 import scouter.lang.pack.ObjectPack
 import scouter.lang.pack.XLogPack
 import scouter.plugin.server.alert.common.AlertLevel
 import scouter.plugin.server.alert.monitoring.AlertEvent
-import scouter.plugin.server.fingerpay.monitoring.XlogErrorEvent
+import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 
 /**
  * Slack 채널 메시지 포맷.
@@ -73,3 +73,4 @@ class SlackMessageFormat : BaseMessageFormat() {
             appendLine("대상    : ${agentName(pack.objHash)}")
         }
 }
+

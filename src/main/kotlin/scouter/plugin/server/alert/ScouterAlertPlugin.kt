@@ -11,7 +11,7 @@ import scouter.plugin.server.alert.monitoring.CounterMonitor
 import scouter.plugin.server.alert.monitoring.ThresholdConfigLoader
 import scouter.plugin.server.alert.uitl.AgentFilter
 import scouter.plugin.server.alert.formatter.ChannelDispatcher
-import scouter.plugin.server.fingerpay.monitoring.XLogErrorMonitor
+import scouter.plugin.server.alert.monitoring.XLogErrorMonitor
 import scouter.server.Configure
 import scouter.server.core.AgentManager
 import java.util.concurrent.ConcurrentHashMap
@@ -57,12 +57,12 @@ class ScouterAlertPlugin {
     // -----------------------------------------------
     @ServerPlugin(PluginConstants.PLUGIN_SERVER_XLOG)
     fun xlog(pack: XLogPack) {
-        if (!conf.getBoolean("ext_plugin_fingerpay_xlog_enabled", false)) return
+        if (!conf.getBoolean("ext_plugin_scouter_alert_xlog_enabled", false)) return
 
         val objName = AgentManager.getAgentName(pack.objHash) ?: return
         if (!isAllowed(objName)) return
 
-        val thresholdMs = conf.getInt("ext_plugin_fingerpay_xlog_threshold_ms", 3000)
+        val thresholdMs = conf.getInt("ext_plugin_scouter_alert_xlog_threshold_ms", 3000)
         if (pack.elapsed <= thresholdMs) return
 
         val event = xlogMonitor.handle(pack)
@@ -134,6 +134,7 @@ class ScouterAlertPlugin {
 
         var objName = AgentManager.getAgentName(pack.objHash) ?: pack.objType
         if (!isAllowed(objName)) return true
+        if (isDown) registeredAgents.remove(pack.objHash)
 
         val objectPack = AgentManager.getAgent(pack.objHash)
 
@@ -171,3 +172,4 @@ class ScouterAlertPlugin {
         return filter.isAllowed(objName)
     }
 }
+

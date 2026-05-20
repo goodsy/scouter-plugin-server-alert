@@ -1,4 +1,4 @@
-package scouter.plugin.server.alert.formatter
+﻿package scouter.plugin.server.alert.formatter
 
 import scouter.lang.pack.AlertPack
 import scouter.lang.pack.ObjectPack
@@ -11,7 +11,7 @@ import scouter.plugin.server.alert.sender.EmailSender
 import scouter.plugin.server.alert.sender.SlackSender
 import scouter.plugin.server.alert.sender.TelegramSender
 import scouter.plugin.server.alert.uitl.LogUtil
-import scouter.plugin.server.fingerpay.monitoring.XlogErrorEvent
+import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 import scouter.server.Configure
 
 /**

@@ -5,6 +5,7 @@ import scouter.lang.value.NumberValue
 import scouter.plugin.server.alert.common.AlertLevel
 import scouter.plugin.server.alert.uitl.LogUtil
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * PerfCounterPack 수신 시 임계치 체크
@@ -22,8 +23,11 @@ class CounterMonitor {
 
     private val cooldownMap = ConcurrentHashMap<String, Long>()
     private val prevTpsMap = ConcurrentHashMap<String, Double>()
+    private val prevTpsTimeMap = ConcurrentHashMap<String, Long>()
     private val errorHistoryMap = ConcurrentHashMap<String, ErrorHistory>()
     private val sentOnceSet = ConcurrentHashMap.newKeySet<String>()
+
+    private val lastCleanup = AtomicLong(System.currentTimeMillis())
 
     /** Alert 발생에 필요한 기본 정보를 담는 컨텍스트 (내부용) */
     private data class AlertContext(
@@ -60,6 +64,7 @@ class CounterMonitor {
         checkAllGroups(events, pack, config, "HeapPct", objName)
         checkHeapUsed(events, pack, config, objName)
 
+        cleanupIfNeeded()
         return events
     }
 
@@ -85,6 +90,7 @@ class CounterMonitor {
             }
         }
         prevTpsMap[objName] = tps
+        prevTpsTimeMap[objName] = System.currentTimeMillis()
     }
 
     // ErrorRate
@@ -284,5 +290,28 @@ class CounterMonitor {
                 LogUtil.info("Alert Reset (sentOnce): $key")
             }
         }
+    }
+
+    private fun cleanupIfNeeded() {
+        val now = System.currentTimeMillis()
+        val last = lastCleanup.get()
+        if (now - last < CLEANUP_INTERVAL_MS) return
+        if (!lastCleanup.compareAndSet(last, now)) return
+
+        cooldownMap.entries.removeIf { now - it.value > MAX_COOLDOWN_MS }
+
+        prevTpsTimeMap.entries.removeIf { (objName, time) ->
+            val stale = now - time > STALE_AGENT_MS
+            if (stale) prevTpsMap.remove(objName)
+            stale
+        }
+
+        errorHistoryMap.entries.removeIf { it.value.isEmpty() }
+    }
+
+    companion object {
+        private const val CLEANUP_INTERVAL_MS = 5 * 60 * 1000L
+        private const val STALE_AGENT_MS      = 10 * 60 * 1000L
+        private const val MAX_COOLDOWN_MS     = 60 * 60 * 1000L
     }
 }

@@ -1,4 +1,4 @@
-package scouter.plugin.server.alert.formatter
+﻿package scouter.plugin.server.alert.formatter
 
 import scouter.lang.AlertLevel as ScouterAlertLevel
 import scouter.lang.pack.AlertPack
@@ -6,7 +6,7 @@ import scouter.lang.pack.ObjectPack
 import scouter.lang.pack.XLogPack
 import scouter.plugin.server.alert.common.AlertLevel
 import scouter.plugin.server.alert.monitoring.AlertEvent
-import scouter.plugin.server.fingerpay.monitoring.XlogErrorEvent
+import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 import scouter.server.core.AgentManager
 import java.time.Instant
 import java.time.LocalDateTime
@@ -83,3 +83,4 @@ abstract class BaseMessageFormat : MessageFormat {
     override fun formatXlogSlow(pack: XLogPack, thresholdMs: Int) =
         FormattedMessage(xlogSlowSubject(pack, thresholdMs), buildXlogSlowBody(pack, thresholdMs))
 }
+

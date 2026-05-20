@@ -1,10 +1,10 @@
-package scouter.plugin.server.alert.formatter
+﻿package scouter.plugin.server.alert.formatter
 
 import scouter.lang.pack.AlertPack
 import scouter.lang.pack.ObjectPack
 import scouter.lang.pack.XLogPack
 import scouter.plugin.server.alert.monitoring.AlertEvent
-import scouter.plugin.server.fingerpay.monitoring.XlogErrorEvent
+import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 
 /**
  * 채널별 메시지 포맷 전략 인터페이스.
@@ -57,3 +57,4 @@ data class FormattedMessage(
     val subject: String,
     val body: String,
 )
+

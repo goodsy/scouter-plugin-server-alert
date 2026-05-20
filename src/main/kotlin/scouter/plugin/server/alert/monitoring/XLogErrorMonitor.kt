@@ -1,9 +1,8 @@
-package scouter.plugin.server.fingerpay.monitoring
+package scouter.plugin.server.alert.monitoring
 
 import scouter.lang.TextTypes
 import scouter.lang.pack.XLogPack
 import scouter.plugin.server.alert.common.AlertLevel
-import scouter.plugin.server.alert.monitoring.ErrorDuplicateGuard
 import scouter.plugin.server.alert.uitl.LogUtil
 import scouter.server.core.AgentManager
 import scouter.server.db.TextRD
