@@ -16,17 +16,19 @@ import scouter.plugin.server.alert.uitl.LogUtil
  *   EMAIL    → EmailMessageFormat    (HTML body)
  */
 object MessageFormatRegistry {
-
     /** Channel.name(대문자) → MessageFormat 구현체 */
     private val registry = mutableMapOf<String, MessageFormat>()
 
     init {
-        register(Channel.SLACK,    SlackMessageFormat())
+        register(Channel.SLACK, SlackMessageFormat())
         register(Channel.TELEGRAM, TelegramMessageFormat())
-        register(Channel.EMAIL,    EmailMessageFormat())
+        register(Channel.EMAIL, EmailMessageFormat())
     }
 
-    fun register(channel: Channel, format: MessageFormat) {
+    fun register(
+        channel: Channel,
+        format: MessageFormat,
+    ) {
         registry[channel.name] = format
         LogUtil.info(this.javaClass, "MessageFormat 등록: ${channel.name} → ${format::class.simpleName}")
     }

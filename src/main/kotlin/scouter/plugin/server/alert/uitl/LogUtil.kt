@@ -5,7 +5,10 @@ import scouter.server.Logger
 object LogUtil {
     private const val LOG_PREFIX = "[SA-PLUGIN]"
 
-    fun info(clazz: Class<*>, message: String) {
+    fun info(
+        clazz: Class<*>,
+        message: String,
+    ) {
         Logger.println(format(clazz, message))
     }
 
@@ -13,15 +16,25 @@ object LogUtil {
         Logger.println(format(message))
     }
 
-    fun error(clazz: Class<*>, message: String) {
+    fun error(
+        clazz: Class<*>,
+        message: String,
+    ) {
         Logger.println(format(clazz, "[ERROR] $message"))
     }
 
-    fun error(clazz: Class<*>, message: String, e: Throwable) {
+    fun error(
+        clazz: Class<*>,
+        message: String,
+        e: Throwable,
+    ) {
         Logger.println(format(clazz, "[ERROR] $message - ${e.message}"))
     }
 
-    private fun format(clazz: Class<*>, message: String): String {
+    private fun format(
+        clazz: Class<*>,
+        message: String,
+    ): String {
         return "$LOG_PREFIX [${clazz.simpleName}] $message"
     }
 

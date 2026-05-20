@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicLong
  *   - cooldown: cooldownSec 동안 재발송 없음
  */
 class CounterMonitor {
-
     private val cooldownMap = ConcurrentHashMap<String, Long>()
     private val prevTpsMap = ConcurrentHashMap<String, Double>()
     private val prevTpsTimeMap = ConcurrentHashMap<String, Long>()
@@ -34,7 +33,7 @@ class CounterMonitor {
         val events: MutableList<AlertEvent>,
         val objName: String,
         val metric: String,
-        val value: Double
+        val value: Double,
     )
 
     /** ErrorRate 체크에 필요한 상태를 묶는 컨텍스트 (내부용) */
@@ -45,10 +44,13 @@ class CounterMonitor {
         val prevErr: Double,
         val hasPrev: Boolean,
         val now: Long,
-        val cooldownMs: Long
+        val cooldownMs: Long,
     )
 
-    fun check(pack: PerfCounterPack, config: ThresholdConfig): List<AlertEvent> {
+    fun check(
+        pack: PerfCounterPack,
+        config: ThresholdConfig,
+    ): List<AlertEvent> {
         val events = mutableListOf<AlertEvent>()
         if (!config.isEnabled()) return events
 
@@ -69,7 +71,12 @@ class CounterMonitor {
     }
 
     // TPS
-    private fun checkTps(events: MutableList<AlertEvent>, pack: PerfCounterPack, config: ThresholdConfig, objName: String) {
+    private fun checkTps(
+        events: MutableList<AlertEvent>,
+        pack: PerfCounterPack,
+        config: ThresholdConfig,
+        objName: String,
+    ) {
         val list = config.getAll("TPS")
         if (list.isEmpty()) return
 
@@ -96,7 +103,12 @@ class CounterMonitor {
     // ErrorRate
     // ① 절대값: 현재값 > cooldownSec 전 값 → 발송
     // ② 증가율: errorRateDiffWarn/Fatal 설정 시에만 동작
-    private fun checkErrorRate(events: MutableList<AlertEvent>, pack: PerfCounterPack, config: ThresholdConfig, objName: String) {
+    private fun checkErrorRate(
+        events: MutableList<AlertEvent>,
+        pack: PerfCounterPack,
+        config: ThresholdConfig,
+        objName: String,
+    ) {
         val list = config.getAll("ErrorRate")
         if (list.isEmpty()) return
 
@@ -124,18 +136,20 @@ class CounterMonitor {
         }
     }
 
-    private fun checkErrorRateAbsolute(ctx: ErrorRateContext, th: MetricThreshold) {
-
+    private fun checkErrorRateAbsolute(
+        ctx: ErrorRateContext,
+        th: MetricThreshold,
+    ) {
         val (events, objName, currentErr, prevErr, hasPrev, now, cooldownMs) = ctx
 
-        val cooldownKey = "${objName}::ErrorRate::${th.channelGroups.sorted().joinToString(",")}"
+        val cooldownKey = "$objName::ErrorRate::${th.channelGroups.sorted().joinToString(",")}"
         val last = cooldownMap[cooldownKey]
         val inCooldown = last != null && now - last < cooldownMs
 
-        //ErrorRate 절대값 cooldown 중
+        // ErrorRate 절대값 cooldown 중
         if (inCooldown) return
-        //ErrorRate 절대값 미발송
-        if (currentErr <= prevErr && currentErr <= th.warnValue)  return
+        // ErrorRate 절대값 미발송
+        if (currentErr <= prevErr && currentErr <= th.warnValue) return
 
         val level = th.decideLevel(currentErr) ?: return
         cooldownMap[cooldownKey] = now
@@ -143,9 +157,9 @@ class CounterMonitor {
         val msg =
             if (!hasPrev || prevErr < 0) {
                 "에러율 최초 감지 (현재: %.1f%%)".format(currentErr)
-            }else if (currentErr < prevErr) {
+            } else if (currentErr < prevErr) {
                 "에러율 감소 (${th.cooldownSec}초 전 : %.1f%% / 현재: %.1f%%)".format(prevErr, currentErr)
-            }else{
+            } else {
                 "에러율 상승 (${th.cooldownSec}초 전 : %.1f%% / 현재: %.1f%%)".format(prevErr, currentErr)
             }
 
@@ -156,14 +170,17 @@ class CounterMonitor {
         }
     }
 
-    private fun checkErrorRateDiff(ctx: ErrorRateContext, th: MetricThreshold) {
+    private fun checkErrorRateDiff(
+        ctx: ErrorRateContext,
+        th: MetricThreshold,
+    ) {
         val (events, objName, currentErr, prevErr, hasPrev, now, cooldownMs) = ctx
         if (!hasPrev || prevErr < 0) return
 
         val diff = currentErr - prevErr
         if (diff <= 0) return
 
-        val cooldownKey = "${objName}::ErrorRateDiff::${th.channelGroups.sorted().joinToString(",")}"
+        val cooldownKey = "$objName::ErrorRateDiff::${th.channelGroups.sorted().joinToString(",")}"
         val last = cooldownMap[cooldownKey]
         val inCooldown = last != null && now - last < cooldownMs
 
@@ -172,11 +189,12 @@ class CounterMonitor {
             return
         }
 
-        val level = when {
-            th.errorRateDiffFatal >= 0 && diff >= th.errorRateDiffFatal -> AlertLevel.FATAL
-            th.errorRateDiffWarn >= 0 && diff >= th.errorRateDiffWarn -> AlertLevel.WARN
-            else -> null
-        } ?: return
+        val level =
+            when {
+                th.errorRateDiffFatal >= 0 && diff >= th.errorRateDiffFatal -> AlertLevel.FATAL
+                th.errorRateDiffWarn >= 0 && diff >= th.errorRateDiffWarn -> AlertLevel.WARN
+                else -> null
+            } ?: return
 
         cooldownMap[cooldownKey] = now
         val msg = "에러율 급증 (${th.cooldownSec}초 전 대비 +%.1f%%p, 현재: %.1f%%)".format(diff, currentErr)
@@ -190,7 +208,12 @@ class CounterMonitor {
     // -----------------------------------------------
     // HeapUsed (bytes → MB 변환)
     // -----------------------------------------------
-    private fun checkHeapUsed(events: MutableList<AlertEvent>, pack: PerfCounterPack, config: ThresholdConfig, objName: String) {
+    private fun checkHeapUsed(
+        events: MutableList<AlertEvent>,
+        pack: PerfCounterPack,
+        config: ThresholdConfig,
+        objName: String,
+    ) {
         val list = config.getAll("HeapUsed")
         if (list.isEmpty()) return
 
@@ -207,7 +230,7 @@ class CounterMonitor {
         pack: PerfCounterPack,
         config: ThresholdConfig,
         metricName: String,
-        objName: String
+        objName: String,
     ) {
         val list = config.getAll(metricName)
         if (list.isEmpty()) return
@@ -220,7 +243,11 @@ class CounterMonitor {
     }
 
     // sentOnce / cooldown 공통 처리
-    private fun checkThresholdAndRecovery(ctx: AlertContext, th: MetricThreshold, subMetrics: List<String> = emptyList()) {
+    private fun checkThresholdAndRecovery(
+        ctx: AlertContext,
+        th: MetricThreshold,
+        subMetrics: List<String> = emptyList(),
+    ) {
         if (th.sentOnce && th.isRecovered(ctx.value)) {
             resetSentOnce(ctx.objName, ctx.metric, th.channelGroups, th)
             subMetrics.forEach { sub ->
@@ -230,7 +257,10 @@ class CounterMonitor {
         processThreshold(ctx, th)
     }
 
-    private fun processThreshold(ctx: AlertContext, th: MetricThreshold) {
+    private fun processThreshold(
+        ctx: AlertContext,
+        th: MetricThreshold,
+    ) {
         val level = th.decideLevel(ctx.value)
         if (level != null) {
             val msg = th.formatMessage(ctx.metric, ctx.value, level)
@@ -242,7 +272,7 @@ class CounterMonitor {
         ctx: AlertContext,
         level: AlertLevel,
         message: String,
-        th: MetricThreshold
+        th: MetricThreshold,
     ) {
         val groups = th.channelGroups
         if (groups.isEmpty()) return
@@ -267,23 +297,29 @@ class CounterMonitor {
         }
     }
 
-
-    private fun getDouble(pack: PerfCounterPack, key: String): Double {
+    private fun getDouble(
+        pack: PerfCounterPack,
+        key: String,
+    ): Double {
         return try {
             val v = pack.data.get(key)
-            when (v){
+            when (v) {
                 is NumberValue -> (v as Number).toDouble()
                 is Number -> v.toDouble()
                 else -> 0.0
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             LogUtil.error(this.javaClass, "지표 없음 : $key", e)
             0.0
         }
     }
 
-
-    private fun resetSentOnce(objName: String, metric: String, groups: List<String>?, th: MetricThreshold) {
+    private fun resetSentOnce(
+        objName: String,
+        metric: String,
+        groups: List<String>?,
+        th: MetricThreshold,
+    ) {
         groups?.forEach { group ->
             val key = "$objName::$metric::$group::${th.stableId()}"
             if (sentOnceSet.remove(key)) {
@@ -311,7 +347,7 @@ class CounterMonitor {
 
     companion object {
         private const val CLEANUP_INTERVAL_MS = 5 * 60 * 1000L
-        private const val STALE_AGENT_MS      = 10 * 60 * 1000L
-        private const val MAX_COOLDOWN_MS     = 60 * 60 * 1000L
+        private const val STALE_AGENT_MS = 10 * 60 * 1000L
+        private const val MAX_COOLDOWN_MS = 60 * 60 * 1000L
     }
 }

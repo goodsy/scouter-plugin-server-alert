@@ -20,7 +20,6 @@ import scouter.plugin.server.alert.monitoring.XlogErrorEvent
  *   → MessageFormatter, ChannelDispatcher 수정 없음
  */
 interface MessageFormat {
-
     /**
      * Alert 알림 포맷 (scouter 자체 알림)
      * @return FormattedMessage (subject + body)
@@ -30,7 +29,10 @@ interface MessageFormat {
     /**
      * Object UP/DOWN/RECONNECT 상태 변경 포맷
      */
-    fun formatObjectStatus(pack: ObjectPack, status: String): FormattedMessage
+    fun formatObjectStatus(
+        pack: ObjectPack,
+        status: String,
+    ): FormattedMessage
 
     /**
      * Counter 임계치 초과 이벤트 포맷
@@ -45,7 +47,10 @@ interface MessageFormat {
     /**
      * XLog Slow TX 포맷
      */
-    fun formatXlogSlow(pack: XLogPack, thresholdMs: Int): FormattedMessage
+    fun formatXlogSlow(
+        pack: XLogPack,
+        thresholdMs: Int,
+    ): FormattedMessage
 }
 
 /**
@@ -57,4 +62,3 @@ data class FormattedMessage(
     val subject: String,
     val body: String,
 )
-

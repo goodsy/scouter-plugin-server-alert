@@ -15,7 +15,8 @@ enum class AlertLevel(val value: Int) {
     WARN(1),
     ERROR(2),
     FATAL(3),
-    UNKNOWN(9);
+    UNKNOWN(9),
+    ;
 
     override fun toString(): String = name
 

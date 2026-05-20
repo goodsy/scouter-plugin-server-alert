@@ -2,7 +2,6 @@ package scouter.plugin.server.alert.monitoring
 
 import scouter.plugin.server.alert.common.AlertLevel
 
-
 data class XlogErrorEvent(
     val objName: String,
     val service: String,

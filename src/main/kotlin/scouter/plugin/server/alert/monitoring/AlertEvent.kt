@@ -12,7 +12,7 @@ data class AlertEvent(
     val value: Double,
     val level: AlertLevel,
     val message: String,
-    val channelGroup: String
+    val channelGroup: String,
 ) {
     fun levelInt(): Int = level.value
 }

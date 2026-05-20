@@ -17,7 +17,10 @@ class ErrorHistory {
     }
 
     @Synchronized
-    fun add(rate: Double, time: Long) {
+    fun add(
+        rate: Double,
+        time: Long,
+    ) {
         rates.addLast(rate)
         times.addLast(time)
 

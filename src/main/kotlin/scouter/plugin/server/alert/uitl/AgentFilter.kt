@@ -1,7 +1,6 @@
 ﻿package scouter.plugin.server.alert.uitl
 
 import scouter.server.Configure
-import scouter.server.Logger
 
 /**
  * scouter agent 화이트리스트 필터
@@ -12,7 +11,6 @@ import scouter.server.Logger
  * - 대소문자 무시
  */
 class AgentFilter {
-
     private var allowAllLogged = false
     private val conf = Configure.getInstance()
 
@@ -29,11 +27,12 @@ class AgentFilter {
             return false
         }
 
-        val whitelist = raw.split(",")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .map { it.lowercase() }
-            .toSet()
+        val whitelist =
+            raw.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .map { it.lowercase() }
+                .toSet()
 
         val lowerObjName = objName.lowercase()
         val allowed = whitelist.any { lowerObjName.contains(it) }

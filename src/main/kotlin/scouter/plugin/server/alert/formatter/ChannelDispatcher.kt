@@ -7,11 +7,11 @@ import scouter.plugin.server.alert.common.AlertLevel
 import scouter.plugin.server.alert.common.Channel
 import scouter.plugin.server.alert.monitoring.AlertEvent
 import scouter.plugin.server.alert.monitoring.ThresholdConfig
+import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 import scouter.plugin.server.alert.sender.EmailSender
 import scouter.plugin.server.alert.sender.SlackSender
 import scouter.plugin.server.alert.sender.TelegramSender
 import scouter.plugin.server.alert.uitl.LogUtil
-import scouter.plugin.server.alert.monitoring.XlogErrorEvent
 import scouter.server.Configure
 
 /**
@@ -31,7 +31,6 @@ import scouter.server.Configure
  *   ChannelDispatcher 수정 불필요
  */
 class ChannelDispatcher {
-
     private val conf = Configure.getInstance()
 
     // ── Alert (scouter 자체 알림) ────────────────────────────────────────
@@ -43,11 +42,11 @@ class ChannelDispatcher {
     ) {
         val level = AlertLevel.Companion.of(pack.level.toInt())
         routeAndSend(
-            objName      = objName,
+            objName = objName,
             channelGroup = "all",
-            level        = level,
+            level = level,
             thresholdConfig = thresholdConfig,
-            ignoreMinLevel  = ignoreMinLevel,
+            ignoreMinLevel = ignoreMinLevel,
         ) { channel ->
             MessageFormatRegistry.resolve(channel).formatAlert(pack)
         }
@@ -62,11 +61,11 @@ class ChannelDispatcher {
         ignoreMinLevel: Boolean = true,
     ) {
         routeAndSend(
-            objName      = pack.objName,
+            objName = pack.objName,
             channelGroup = "all",
-            level        = level,
+            level = level,
             thresholdConfig = thresholdConfig,
-            ignoreMinLevel  = ignoreMinLevel,
+            ignoreMinLevel = ignoreMinLevel,
         ) { channel ->
             MessageFormatRegistry.resolve(channel).formatObjectStatus(pack, status)
         }
@@ -78,9 +77,9 @@ class ChannelDispatcher {
         thresholdConfig: ThresholdConfig?,
     ) {
         routeAndSend(
-            objName      = event.objName,
+            objName = event.objName,
             channelGroup = event.channelGroup,
-            level        = event.level,
+            level = event.level,
             thresholdConfig = thresholdConfig,
         ) { channel ->
             MessageFormatRegistry.resolve(channel).formatCounterAlert(event)
@@ -94,9 +93,9 @@ class ChannelDispatcher {
         thresholdConfig: ThresholdConfig?,
     ) {
         routeAndSend(
-            objName      = objName,
+            objName = objName,
             channelGroup = "dev-xlog",
-            level        = event.level,
+            level = event.level,
             thresholdConfig = thresholdConfig,
         ) { channel ->
             MessageFormatRegistry.resolve(channel).formatXlogError(event)
@@ -111,12 +110,13 @@ class ChannelDispatcher {
         thresholdConfig: ThresholdConfig?,
     ) {
         routeAndSend(
-            objName      = objName,
+            objName = objName,
             channelGroup = "dev-xlog",
-            level        = AlertLevel.WARN,
+            level = AlertLevel.WARN,
             thresholdConfig = thresholdConfig,
         ) {
-            channel -> MessageFormatRegistry.resolve(channel).formatXlogSlow(pack, thresholdMs)
+                channel ->
+            MessageFormatRegistry.resolve(channel).formatXlogSlow(pack, thresholdMs)
         }
     }
 
@@ -137,8 +137,9 @@ class ChannelDispatcher {
         if (!ignoreMinLevel && level.value < minLevel) return
 
         // 채널 목록 결정
-        val channelNames = thresholdConfig?.resolveChannels(channelGroup, level.name)
-            ?: listOf(Channel.TELEGRAM.name, Channel.SLACK.name)
+        val channelNames =
+            thresholdConfig?.resolveChannels(channelGroup, level.name)
+                ?: listOf(Channel.TELEGRAM.name, Channel.SLACK.name)
 
         if (channelNames.isEmpty()) {
             LogUtil.info(this.javaClass, "채널 매핑 없음 group=$channelGroup level=$level objName=$objName")
@@ -171,9 +172,9 @@ class ChannelDispatcher {
     ) {
         when (channel) {
             Channel.TELEGRAM -> sendTelegram(formatted.body)
-            Channel.SLACK    -> sendSlack(formatted.body)
-            Channel.EMAIL    -> sendEmail(formatted.subject, formatted.body)
-            else             -> LogUtil.error(this.javaClass, "sendToChannel: 처리 불가 채널 ${channel.name}")
+            Channel.SLACK -> sendSlack(formatted.body)
+            Channel.EMAIL -> sendEmail(formatted.subject, formatted.body)
+            else -> LogUtil.error(this.javaClass, "sendToChannel: 처리 불가 채널 ${channel.name}")
         }
     }
 
@@ -193,7 +194,10 @@ class ChannelDispatcher {
         ).send(body)
     }
 
-    private fun sendEmail(subject: String, body: String) {
+    private fun sendEmail(
+        subject: String,
+        body: String,
+    ) {
         if (!conf.getBoolean("ext_plugin_scouter_alert_email_enabled", false)) return
         EmailSender(
             conf.getValue("ext_plugin_scouter_alert_email_user_id", ""),

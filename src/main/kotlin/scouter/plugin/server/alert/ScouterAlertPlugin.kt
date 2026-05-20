@@ -7,11 +7,11 @@ import scouter.lang.pack.XLogPack
 import scouter.lang.plugin.PluginConstants
 import scouter.lang.plugin.annotation.ServerPlugin
 import scouter.plugin.server.alert.common.AlertLevel
+import scouter.plugin.server.alert.formatter.ChannelDispatcher
 import scouter.plugin.server.alert.monitoring.CounterMonitor
 import scouter.plugin.server.alert.monitoring.ThresholdConfigLoader
-import scouter.plugin.server.alert.uitl.AgentFilter
-import scouter.plugin.server.alert.formatter.ChannelDispatcher
 import scouter.plugin.server.alert.monitoring.XLogErrorMonitor
+import scouter.plugin.server.alert.uitl.AgentFilter
 import scouter.server.Configure
 import scouter.server.core.AgentManager
 import java.util.concurrent.ConcurrentHashMap
@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap
  * └─────────────────────────────────────────────────────────────────────┘
  */
 class ScouterAlertPlugin {
-
     private val conf = Configure.getInstance()
     private val filter = AgentFilter()
     private val dispatcher = ChannelDispatcher()
@@ -46,8 +45,8 @@ class ScouterAlertPlugin {
 
         // 매칭되는 지표가 없거나 설정이 없을 경우 기본 "all" 그룹 발송
         dispatcher.dispatchAlert(
-            objName         = objName,
-            pack            = pack,
+            objName = objName,
+            pack = pack,
             thresholdConfig = ThresholdConfigLoader.get(),
         )
     }
@@ -70,16 +69,16 @@ class ScouterAlertPlugin {
         if (event != null) {
             // XLog Error 이벤트: 에러 포맷
             dispatcher.dispatchXlogError(
-                objName         = objName,
-                event           = event,
+                objName = objName,
+                event = event,
                 thresholdConfig = ThresholdConfigLoader.get(),
             )
         } else {
             // Slow TX (에러 없음): slow 포맷
             dispatcher.dispatchXlogSlow(
-                objName         = objName,
-                pack            = pack,
-                thresholdMs     = thresholdMs,
+                objName = objName,
+                pack = pack,
+                thresholdMs = thresholdMs,
                 thresholdConfig = ThresholdConfigLoader.get(),
             )
         }
@@ -100,11 +99,11 @@ class ScouterAlertPlugin {
         if (!registeredAgents.add(pack.objHash)) return
 
         dispatcher.dispatchObjectStatus(
-            pack            = pack,
-            status          = "UP ✅",
-            level           = AlertLevel.INFO,
+            pack = pack,
+            status = "UP ✅",
+            level = AlertLevel.INFO,
             thresholdConfig = ThresholdConfigLoader.get(),
-            ignoreMinLevel  = true,
+            ignoreMinLevel = true,
         )
     }
 
@@ -140,25 +139,26 @@ class ScouterAlertPlugin {
 
         if (objectPack != null) {
             val (status, level) =
-                if (isDown)
+                if (isDown) {
                     "DOWN 🔴" to AlertLevel.FATAL
-                else
+                } else {
                     "RECONNECTED ✅" to AlertLevel.INFO
+                }
 
             dispatcher.dispatchObjectStatus(
-                pack            = objectPack,
-                status          = status,
-                level           = level,
+                pack = objectPack,
+                status = status,
+                level = level,
                 thresholdConfig = ThresholdConfigLoader.get(),
-                ignoreMinLevel  = true,
+                ignoreMinLevel = true,
             )
         } else {
             // objectPack 없는 경우 Alert 팩 그대로 발송
             dispatcher.dispatchAlert(
-                objName         = objName!!,
-                pack            = pack,
+                objName = objName!!,
+                pack = pack,
                 thresholdConfig = ThresholdConfigLoader.get(),
-                ignoreMinLevel  = true,
+                ignoreMinLevel = true,
             )
         }
 
@@ -172,4 +172,3 @@ class ScouterAlertPlugin {
         return filter.isAllowed(objName)
     }
 }
-

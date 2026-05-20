@@ -2,16 +2,20 @@ package scouter.plugin.server.alert.sender
 
 import java.net.HttpURLConnection
 import java.net.URI
-import java.net.URL
 import java.nio.charset.StandardCharsets
 
 interface MessageSender {
     fun send(message: String)
+
     fun isConfigured(): Boolean
 }
 
 abstract class HttpMessageSender : MessageSender {
-    protected fun post(endpoint: String, payload: String, timeoutMs: Int = 5_000) {
+    protected fun post(
+        endpoint: String,
+        payload: String,
+        timeoutMs: Int = 5_000,
+    ) {
         val conn = URI(endpoint).toURL().openConnection() as HttpURLConnection
         try {
             conn.requestMethod = "POST"

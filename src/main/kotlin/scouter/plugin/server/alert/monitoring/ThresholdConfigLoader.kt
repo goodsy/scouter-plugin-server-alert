@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference
  * - 60초 폴링 → 파일 변경 시 자동 리로드 (재시작 불필요)
  */
 object ThresholdConfigLoader {
-
     private val GSON: Gson = GsonBuilder().create()
     private const val POLL_INTERVAL_SEC: Long = 60
 
@@ -28,20 +27,24 @@ object ThresholdConfigLoader {
 
     @Volatile
     private var lastModified: Long = -1
+
     @Volatile
     private var lastPath: String? = null
 
-    private val scheduler = Executors.newSingleThreadScheduledExecutor { r ->
-        Thread(r, "scouter-plugin-threshold-watcher").apply {
-            isDaemon = true
+    private val scheduler =
+        Executors.newSingleThreadScheduledExecutor { r ->
+            Thread(r, "scouter-plugin-threshold-watcher").apply {
+                isDaemon = true
+            }
         }
-    }
 
     init {
         reload()
         scheduler.scheduleWithFixedDelay(
             { reloadIfChanged() },
-            POLL_INTERVAL_SEC, POLL_INTERVAL_SEC, TimeUnit.SECONDS
+            POLL_INTERVAL_SEC,
+            POLL_INTERVAL_SEC,
+            TimeUnit.SECONDS,
         )
         LogUtil.info(this.javaClass, "설정 파일 감시 시작 (interval=${POLL_INTERVAL_SEC}s)")
     }
@@ -51,8 +54,11 @@ object ThresholdConfigLoader {
     private fun resolveConfigPath(): String {
         val conf = Configure.getInstance()
         val custom = conf.getValue("ext_plugin_scouter_alert_thresholds_path", "")
-        return if (!custom.isNullOrBlank()) custom
-        else Paths.get(System.getProperty("user.dir"), "conf", "metric-thresholds.json").toString()
+        return if (!custom.isNullOrBlank()) {
+            custom
+        } else {
+            Paths.get(System.getProperty("user.dir"), "conf", "metric-thresholds.json").toString()
+        }
     }
 
     private fun reload() {
@@ -94,6 +100,4 @@ object ThresholdConfigLoader {
             LogUtil.error(this.javaClass, "설정 파일 변경 오류", e)
         }
     }
-
-
 }

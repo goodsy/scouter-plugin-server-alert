@@ -21,7 +21,6 @@ import scouter.plugin.server.alert.monitoring.XlogErrorEvent
  *     해당 변경은 SlackMessageFormat + SlackSender 만 수정하면 됨.
  */
 class SlackMessageFormat : BaseMessageFormat() {
-
     override fun buildAlertBody(pack: AlertPack): String {
         val level = AlertLevel.of(pack.level.toInt())
         val emoji = level.emoji()
@@ -33,7 +32,10 @@ class SlackMessageFormat : BaseMessageFormat() {
         }
     }
 
-    override fun buildObjectBody(pack: ObjectPack, status: String): String =
+    override fun buildObjectBody(
+        pack: ObjectPack,
+        status: String,
+    ): String =
         buildString {
             appendLine("🖥️ *[OBJECT $status]*")
             appendLine("시간    : ${ts(System.currentTimeMillis())}")
@@ -64,7 +66,10 @@ class SlackMessageFormat : BaseMessageFormat() {
             appendLine("TXID   : ${event.txid}")
         }
 
-    override fun buildXlogSlowBody(pack: XLogPack, thresholdMs: Int): String =
+    override fun buildXlogSlowBody(
+        pack: XLogPack,
+        thresholdMs: Int,
+    ): String =
         buildString {
             appendLine("🐢 *[SLOW TX] 응답시간 초과 (임계치: ${thresholdMs}ms)*")
             appendLine("시간    : ${ts(pack.endTime)}")
@@ -73,4 +78,3 @@ class SlackMessageFormat : BaseMessageFormat() {
             appendLine("대상    : ${agentName(pack.objHash)}")
         }
 }
-

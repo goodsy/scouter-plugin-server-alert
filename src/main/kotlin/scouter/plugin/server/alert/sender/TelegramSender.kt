@@ -3,7 +3,6 @@ package scouter.plugin.server.alert.sender
 import scouter.plugin.server.alert.uitl.LogUtil
 
 class TelegramSender(private val token: String?, private val chatId: String?) : HttpMessageSender() {
-
     override fun isConfigured(): Boolean {
         return !token.isNullOrBlank() && !chatId.isNullOrBlank()
     }
@@ -27,7 +26,10 @@ class TelegramSender(private val token: String?, private val chatId: String?) : 
         return "{\"chat_id\":\"$chatId\",\"text\":\"${text.jsonEscape()}\"}"
     }
 
-    private fun post(endpoint: String, payload: String) {
+    private fun post(
+        endpoint: String,
+        payload: String,
+    ) {
         super.post(endpoint, payload, TIMEOUT_MS)
     }
 

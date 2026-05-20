@@ -4,7 +4,8 @@ enum class Channel {
     TELEGRAM,
     SLACK,
     EMAIL,
-    UNKNOWN;
+    UNKNOWN,
+    ;
 
     companion object {
         fun of(name: String?): Channel {

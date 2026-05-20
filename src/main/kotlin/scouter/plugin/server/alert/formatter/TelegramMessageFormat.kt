@@ -19,7 +19,6 @@ import scouter.plugin.server.alert.monitoring.XlogErrorEvent
  *     TelegramSender.buildPayload() 에 "parse_mode":"HTML" 추가
  */
 class TelegramMessageFormat : BaseMessageFormat() {
-
     override fun buildAlertBody(pack: AlertPack): String {
         val level = AlertLevel.of(pack.level.toInt())
         val emoji = level.emoji()
@@ -31,7 +30,10 @@ class TelegramMessageFormat : BaseMessageFormat() {
         }
     }
 
-    override fun buildObjectBody(pack: ObjectPack, status: String): String =
+    override fun buildObjectBody(
+        pack: ObjectPack,
+        status: String,
+    ): String =
         buildString {
             appendLine("🖥️ [OBJECT $status]")
             appendLine("시간    : ${ts(System.currentTimeMillis())}")
@@ -62,7 +64,10 @@ class TelegramMessageFormat : BaseMessageFormat() {
             appendLine("TXID   : ${event.txid}")
         }
 
-    override fun buildXlogSlowBody(pack: XLogPack, thresholdMs: Int): String =
+    override fun buildXlogSlowBody(
+        pack: XLogPack,
+        thresholdMs: Int,
+    ): String =
         buildString {
             appendLine("🐢 [SLOW TX] 응답시간 초과 (임계치: ${thresholdMs}ms)")
             appendLine("시간    : ${ts(pack.endTime)}")
@@ -71,4 +76,3 @@ class TelegramMessageFormat : BaseMessageFormat() {
             appendLine("대상    : ${agentName(pack.objHash)}")
         }
 }
-

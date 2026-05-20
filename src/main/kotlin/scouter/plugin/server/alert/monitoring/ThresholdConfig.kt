@@ -21,8 +21,9 @@ class ThresholdConfig {
     private var thresholdMap: Map<String, MetricThreshold>? = null
 
     fun init() {
-        thresholdMap = thresholds?.filter { it.metric != null }
-            ?.associateBy { toKey(it) }
+        thresholdMap =
+            thresholds?.filter { it.metric != null }
+                ?.associateBy { toKey(it) }
     }
 
     /**
@@ -35,7 +36,10 @@ class ThresholdConfig {
         return thresholds!!.filter { metricName.equals(it.metric, ignoreCase = true) && it.enabled }
     }
 
-    fun resolveChannels(groupName: String?, levelName: String?): List<String> {
+    fun resolveChannels(
+        groupName: String?,
+        levelName: String?,
+    ): List<String> {
         if (channelGroups == null || groupName == null || levelName == null) return emptyList()
 
         val group = channelGroups!![groupName] ?: return emptyList()

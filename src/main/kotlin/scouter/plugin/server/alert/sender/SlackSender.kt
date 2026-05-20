@@ -3,7 +3,6 @@ package scouter.plugin.server.alert.sender
 import scouter.plugin.server.alert.uitl.LogUtil
 
 class SlackSender(private val channel: String?) : HttpMessageSender() {
-
     override fun isConfigured(): Boolean {
         return !channel.isNullOrBlank()
     }
@@ -24,7 +23,10 @@ class SlackSender(private val channel: String?) : HttpMessageSender() {
         return "{\"text\":\"```${message.jsonEscape()}```\"}"
     }
 
-    private fun post(endpoint: String, payload: String) {
+    private fun post(
+        endpoint: String,
+        payload: String,
+    ) {
         super.post(endpoint, payload, TIMEOUT_MS)
     }
 
